@@ -8,7 +8,6 @@ interface StatsOverviewProps {
 }
 
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ doctors, appointments }) => {
-  // Count total open slots
   const totalOpenSlots = doctors.reduce((acc, doc) => {
     const freeSlots = doc.upcoming_slots ? doc.upcoming_slots.filter((s) => s.is_booked === 0).length : 0;
     return acc + freeSlots;
@@ -20,58 +19,62 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ doctors, appointme
     {
       label: 'Specialists On Duty',
       value: doctors.length.toString(),
-      subtext: '5 Departments Active',
+      subtext: '5 Department Heads Active',
       icon: Users,
-      color: 'from-emerald-500/20 to-teal-500/10',
-      iconColor: 'text-emerald-400',
-      borderColor: 'border-emerald-500/30'
+      gradient: 'from-violet-600/20 via-indigo-600/10 to-transparent',
+      borderColor: 'border-violet-500/30 hover:border-violet-500/60',
+      iconBg: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+      accentText: 'text-violet-400'
     },
     {
-      label: 'Available Consultation Slots',
+      label: 'Available Time Slots',
       value: totalOpenSlots.toString(),
       subtext: 'Next 7 Days Real-Time',
       icon: Clock,
-      color: 'from-teal-500/20 to-cyan-500/10',
-      iconColor: 'text-teal-400',
-      borderColor: 'border-teal-500/30'
+      gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
+      borderColor: 'border-rose-500/30 hover:border-rose-500/60',
+      iconBg: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      accentText: 'text-rose-400'
     },
     {
       label: 'Confirmed Appointments',
       value: confirmedCount.toString(),
-      subtext: 'Booked via Voice / Online',
+      subtext: 'Synchronized with DB',
       icon: CalendarCheck,
-      color: 'from-cyan-500/20 to-blue-500/10',
-      iconColor: 'text-cyan-400',
-      borderColor: 'border-cyan-500/30'
+      gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
+      borderColor: 'border-emerald-500/30 hover:border-emerald-500/60',
+      iconBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      accentText: 'text-emerald-400'
     },
     {
-      label: 'Average AI Turnaround',
-      value: '< 0.8s',
-      subtext: 'Ultra-Fast Voice Response',
+      label: 'Average Voice Turnaround',
+      value: '0.7s',
+      subtext: 'Sub-Second Voice Latency',
       icon: Zap,
-      color: 'from-amber-500/20 to-orange-500/10',
-      iconColor: 'text-amber-400',
-      borderColor: 'border-amber-500/30'
+      gradient: 'from-amber-600/20 via-yellow-600/10 to-transparent',
+      borderColor: 'border-amber-500/30 hover:border-amber-500/60',
+      iconBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      accentText: 'text-amber-400'
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
       {stats.map((stat, idx) => {
         const Icon = stat.icon;
         return (
           <div
             key={idx}
-            className={`relative overflow-hidden bg-gradient-to-br ${stat.color} bg-slate-900/90 border ${stat.borderColor} rounded-2xl p-4 sm:p-5 shadow-sm transition hover:border-emerald-500/50 hover:shadow-md`}
+            className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} bg-[#0A0F1E]/95 border ${stat.borderColor} rounded-3xl p-5 sm:p-6 shadow-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-              <div className={`p-2 rounded-xl bg-slate-800/80 border border-slate-700/60 ${stat.iconColor}`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
+              <div className={`p-2.5 rounded-2xl border ${stat.iconBg}`}>
                 <Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">{stat.value}</div>
-            <div className="text-[11px] text-slate-400 mt-1 font-medium">{stat.subtext}</div>
+            <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">{stat.value}</div>
+            <div className={`text-xs mt-1.5 font-medium ${stat.accentText}`}>{stat.subtext}</div>
           </div>
         );
       })}

@@ -157,7 +157,11 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#060913] text-slate-100 flex flex-col selection:bg-rose-500 selection:text-white relative font-sans">
+      {/* Subtle Ambient Mesh Lights */}
+      <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-rose-500/[0.03] rounded-full blur-[140px] pointer-events-none" />
+      <div className="fixed bottom-10 right-10 w-[600px] h-[600px] bg-indigo-500/[0.04] rounded-full blur-[160px] pointer-events-none" />
+      
       {/* Top Navigation & Controls */}
       <Header
         health={health}

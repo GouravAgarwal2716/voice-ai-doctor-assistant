@@ -10,7 +10,7 @@ interface AudioWaveformProps {
 export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   analyser,
   isActive,
-  barColor = '#10b981',
+  barColor = '#f43f5e',
   className = 'h-16 w-full'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -37,33 +37,34 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
       if (analyser && isActive) {
         analyser.getByteFrequencyData(dataArray);
       } else if (isActive) {
-        // Idle gentle wave animation if analyser not ready
-        phase += 0.05;
+        // Dynamic organic pulse wave
+        phase += 0.06;
         for (let i = 0; i < bufferLength; i++) {
-          dataArray[i] = Math.sin(phase + i * 0.2) * 25 + 30;
+          dataArray[i] = Math.sin(phase + i * 0.25) * 35 + 45;
         }
       } else {
-        // Flat line
+        // Flat baseline
         for (let i = 0; i < bufferLength; i++) {
-          dataArray[i] = 4;
+          dataArray[i] = 6;
         }
       }
 
-      const numBars = 24;
-      const barWidth = 3;
+      const numBars = 28;
+      const barWidth = 3.5;
       const spacing = (width - numBars * barWidth) / (numBars + 1);
 
       for (let i = 0; i < numBars; i++) {
         const dataIndex = Math.floor((i / numBars) * (bufferLength / 2));
         const val = dataArray[dataIndex] || 0;
-        const barHeight = Math.max(3, (val / 255) * height * 0.85);
+        const barHeight = Math.max(3.5, (val / 255) * height * 0.88);
 
         const x = spacing + i * (barWidth + spacing);
         const y = (height - barHeight) / 2;
 
         const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
-        gradient.addColorStop(0, '#34d399');
-        gradient.addColorStop(1, barColor);
+        gradient.addColorStop(0, '#fb7185'); // rose-400
+        gradient.addColorStop(0.5, '#fb923c'); // orange-400
+        gradient.addColorStop(1, '#38bdf8'); // sky-400
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -84,7 +85,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      width={240}
+      width={260}
       height={64}
       className={className}
     />

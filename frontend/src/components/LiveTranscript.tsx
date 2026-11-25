@@ -1,5 +1,5 @@
-import React from 'react';
-import { MessageSquareText, Copy, Check } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { MessageSquareText, Sparkles, Copy, Check } from 'lucide-react';
 import type { TranscriptItem } from '../types';
 
 interface LiveTranscriptProps {
@@ -7,11 +7,19 @@ interface LiveTranscriptProps {
 }
 
 export const LiveTranscript: React.FC<LiveTranscriptProps> = ({ transcripts }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [copied, setCopied] = React.useState(false);
 
-  const copyAll = () => {
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [transcripts]);
+
+  const handleCopyTranscript = () => {
+    if (transcripts.length === 0) return;
     const text = transcripts
-      .map(t => `[${t.timestamp}] ${t.role === 'caller' ? 'Caller' : 'Clara'}: ${t.text}`)
+      .map((t) => `[${t.timestamp}] ${t.role === 'agent' ? 'Clara (AI)' : 'Caller'}: ${t.text}`)
       .join('\n');
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -19,19 +27,24 @@ export const LiveTranscript: React.FC<LiveTranscriptProps> = ({ transcripts }) =
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-full shadow-sm">
-      <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/95">
-        <div className="flex items-center space-x-2">
-          <MessageSquareText className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold text-white">Live Conversation Transcript</h2>
-          <span className="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full font-mono">
-            {transcripts.length} lines
-          </span>
+    <div className="bg-[#0A0F1E]/95 border border-indigo-500/20 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[580px]">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-slate-800/80 bg-[#070B14]/90 flex items-center justify-between shrink-0">
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rose-500/20 to-orange-500/20 border border-rose-500/30 flex items-center justify-center text-rose-300">
+            <MessageSquareText className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-white tracking-tight">Live Spoken Transcript</h3>
+            <p className="text-xs text-slate-400">Streams caller STT and Clara's responses</p>
+          </div>
         </div>
+
         {transcripts.length > 0 && (
           <button
-            onClick={copyAll}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-800 transition"
+            onClick={handleCopyTranscript}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#121A2F] hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700/80 transition cursor-pointer"
+            title="Copy conversation transcript"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -39,33 +52,56 @@ export const LiveTranscript: React.FC<LiveTranscriptProps> = ({ transcripts }) =
         )}
       </div>
 
-      <div className="p-4 flex-1 overflow-y-auto space-y-3 min-h-[320px] max-h-[440px]">
+      {/* Transcript Body */}
+      <div
+        ref={scrollRef}
+        className="flex-1 p-5 overflow-y-auto space-y-3.5 text-xs bg-[#060913] scrollbar-thin scrollbar-thumb-slate-800"
+      >
         {transcripts.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12">
-            <MessageSquareText className="w-8 h-8 text-slate-700 mb-2" />
-            <p className="text-xs">No active conversation yet.</p>
-            <p className="text-[11px] text-slate-600 mt-1">Click "Start Voice Call" to talk to Clara in real-time.</p>
+          <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 px-6">
+            <Sparkles className="w-9 h-9 text-rose-400/50 mb-3 animate-pulse" />
+            <p className="text-sm font-bold text-slate-400">No active conversation</p>
+            <p className="text-xs text-slate-600 mt-1 max-w-xs">
+              Click "Start Voice Call with Clara" to speak with the AI assistant. Real-time words appear here automatically.
+            </p>
           </div>
         ) : (
-          transcripts.map((t) => (
-            <div
-              key={t.id}
-              className={`p-3 rounded-xl border text-xs leading-relaxed ${
-                t.role === 'caller'
-                  ? 'bg-emerald-950/20 border-emerald-500/20 text-slate-200 ml-4'
-                  : 'bg-slate-800/60 border-slate-700/50 text-slate-100 mr-4'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1 text-[10px]">
-                <span className={`font-semibold ${t.role === 'caller' ? 'text-emerald-400' : 'text-teal-400'}`}>
-                  {t.role === 'caller' ? 'Caller' : 'Clara (AI Receptionist)'}
-                </span>
-                <span className="text-slate-500 font-mono">{t.timestamp}</span>
+          transcripts.map((t) => {
+            const isAgent = t.role === 'agent';
+            return (
+              <div
+                key={t.id}
+                className={`flex flex-col ${isAgent ? 'items-start' : 'items-end'} animate-fade-in`}
+              >
+                <div className="flex items-center space-x-1.5 mb-1 text-[10px] text-slate-400 px-1">
+                  <span className={`font-bold uppercase tracking-wider ${isAgent ? 'text-rose-300' : 'text-teal-300'}`}>
+                    {isAgent ? 'Clara (AI)' : 'Caller'}
+                  </span>
+                  <span>•</span>
+                  <span>{t.timestamp}</span>
+                </div>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-md leading-relaxed ${
+                    isAgent
+                      ? 'bg-[#141C31] text-slate-100 rounded-tl-sm border border-indigo-500/20'
+                      : 'bg-gradient-to-r from-rose-500 to-orange-500 text-white rounded-tr-sm font-semibold'
+                  }`}
+                >
+                  {t.text}
+                </div>
               </div>
-              <div>{t.text}</div>
-            </div>
-          ))
+            );
+          })
         )}
+      </div>
+
+      {/* Footer Info */}
+      <div className="px-6 py-3 border-t border-slate-800/80 bg-[#070B14]/80 text-[11px] text-slate-400 flex items-center justify-between shrink-0">
+        <span>ElevenLabs STT + Google Gemini</span>
+        <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Active Channel
+        </span>
       </div>
     </div>
   );
