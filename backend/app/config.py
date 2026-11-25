@@ -15,12 +15,12 @@ class Settings:
     
     # ElevenLabs Voice Configuration
     # Default: "21m00Tcm4TlvDq8ikWAM" (Rachel - friendly, calm medical receptionist)
-    ELEVENLABS_VOICE_ID: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+    ELEVENLABS_VOICE_ID: str = os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")
     ELEVENLABS_MODEL_ID: str = os.getenv("ELEVENLABS_MODEL_ID", "eleven_turbo_v2_5")
     
     # LLM Configuration
     # Gemini 2.0 Flash or 1.5 Flash recommended for fast voice turnaround
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     
     # Database
     DB_PATH: Path = Path(__file__).resolve().parent.parent / "clinic.db"

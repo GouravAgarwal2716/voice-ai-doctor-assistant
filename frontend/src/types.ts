@@ -15,6 +15,10 @@ export interface Doctor {
   room_number: string;
   rating: number;
   phone: string;
+  avatar_url?: string;
+  experience_years?: string;
+  education?: string;
+  consultation_fee?: string;
   upcoming_slots: Slot[];
 }
 
@@ -38,6 +42,7 @@ export interface TranscriptItem {
   role: 'caller' | 'agent' | 'system';
   text: string;
   timestamp: string;
+  isStreaming?: boolean;
 }
 
 export type CallState = 'idle' | 'ringing' | 'connected' | 'ended';
@@ -48,5 +53,4 @@ export interface HealthInfo {
   elevenlabs_configured: boolean;
   llm_model: string;
   voice_id: string;
-  db_path: string;
 }

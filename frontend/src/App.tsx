@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Header } from './components/Header';
+import { HeroSection } from './components/HeroSection';
 import { StatsOverview } from './components/StatsOverview';
 import { DoctorsList } from './components/DoctorsList';
 import { AppointmentsTable } from './components/AppointmentsTable';
@@ -169,6 +170,18 @@ export function App() {
       {/* Main Dashboard Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
+        {/* Clinic Hero Banner */}
+        <HeroSection
+          callState={callState}
+          onStartCall={handleStartCall}
+          onSelectPrompt={(prompt) => {
+            handleStartCall();
+            setTimeout(() => {
+              sendTextInput(prompt);
+            }, 1200);
+          }}
+        />
+
         {/* KPI & Pipeline Metrics */}
         <StatsOverview doctors={doctors} appointments={appointments} />
 
@@ -184,7 +197,16 @@ export function App() {
                   sendTextInput(`I would like to book an appointment with ${docName} at ${time}`);
                 } else {
                   handleStartCall();
+                  setTimeout(() => {
+                    sendTextInput(`I would like to book with ${docName} at ${time}`);
+                  }, 1200);
                 }
+              }}
+              onCallForDoctor={(docName) => {
+                handleStartCall();
+                setTimeout(() => {
+                  sendTextInput(`I want to check ${docName}'s availability`);
+                }, 1200);
               }}
             />
           </div>

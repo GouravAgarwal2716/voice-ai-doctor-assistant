@@ -56,6 +56,9 @@ export const useVoiceCall = (options?: UseVoiceCallOptions) => {
 
     isPlayingRef.current = true;
     const ctx = audioCtxRef.current;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(console.error);
+    }
     const chunk = audioQueueRef.current.shift()!;
     const buffer = ctx.createBuffer(1, chunk.length, 16000);
     buffer.getChannelData(0).set(chunk);
@@ -63,12 +66,12 @@ export const useVoiceCall = (options?: UseVoiceCallOptions) => {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
 
-    // Connect through analyser for reactive waveform when agent speaks
+    // Play audio through destination speakers
+    source.connect(ctx.destination);
+
+    // Tap into analyser for reactive visualizer (WITHOUT looping back to destination)
     if (analyserRef.current) {
       source.connect(analyserRef.current);
-      analyserRef.current.connect(ctx.destination);
-    } else {
-      source.connect(ctx.destination);
     }
 
     source.onended = () => {
@@ -101,6 +104,9 @@ export const useVoiceCall = (options?: UseVoiceCallOptions) => {
       // Initialize Web Audio Context
       const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const audioCtx = new AudioContextClass({ sampleRate: 16000 });
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
       audioCtxRef.current = audioCtx;
 
       // Setup AnalyserNode for live waveform
@@ -157,8 +163,37 @@ export const useVoiceCall = (options?: UseVoiceCallOptions) => {
                 }
               ]);
             }
+          } else if (data.type === 'transcript_chunk') {
+            // Live agent streaming words into the chat
+            setTranscripts(prev => {
+              const last = prev[prev.length - 1];
+              if (last && last.role === 'agent' && (last as any).isStreaming) {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...last, text: last.text + ' ' + data.text }
+                ];
+              } else {
+                return [
+                  ...prev,
+                  {
+                    id: String(Date.now()),
+                    role: 'agent',
+                    text: data.text,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    isStreaming: true,
+                  } as any
+                ];
+              }
+            });
           } else if (data.type === 'transcript') {
             setTranscripts(prev => {
+              const last = prev[prev.length - 1];
+              if (last && last.role === data.role && (last as any).isStreaming) {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...last, text: data.text, isStreaming: false }
+                ];
+              }
               if (prev.length > 0 && prev[prev.length - 1].text === data.text) {
                 return prev;
               }
