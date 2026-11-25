@@ -1,6 +1,7 @@
 import asyncio
 import json
 import base64
+from datetime import datetime
 from typing import Optional, Callable, Any, Dict
 from loguru import logger
 
@@ -12,6 +13,7 @@ from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
 from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.adapters.llm.schemas.tools_schema import ToolsSchema, FunctionSchema
+from pipecat.adapters.llm.services.gemini_adapter import GeminiLLMAdapter
 from pipecat.services.google.llm import GoogleLLMService
 from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.elevenlabs.stt import ElevenLabsSTTService
@@ -164,8 +166,15 @@ class AudioAndEventSerializer(FrameSerializer):
                 elif msg_type == "hangup" or msg_type == "end_call":
                     return EndFrame()
                 elif msg_type == "text_input":
-                    # Optional text fallback input
-                    return TextFrame(text=msg.get("text", ""))
+                    text_val = msg.get("text", "").strip()
+                    if text_val:
+                        return TranscriptionFrame(
+                            text=text_val,
+                            user_id="caller",
+                            timestamp=datetime.now().isoformat(),
+                            finalized=True
+                        )
+                    return None
             except Exception as e:
                 logger.error(f"Error deserializing WebSocket message: {e}")
         return None
@@ -287,13 +296,14 @@ def create_pipecat_pipeline(
 
     # 4. LLM - Google Gemini with Function Calling Tools
     gemini_key = settings.GEMINI_API_KEY or "dummy_key_for_init"
+    gemini_tools = GeminiLLMAdapter().to_provider_tools_format(DOCTOR_TOOLS)
     llm = GoogleLLMService(
         api_key=gemini_key,
         settings=GoogleLLMService.Settings(
             model=settings.GEMINI_MODEL,
             system_instruction=SYSTEM_PROMPT
         ),
-        tools=DOCTOR_TOOLS
+        tools=gemini_tools
     )
 
     # Register Tool 1: check_doctor_availability
