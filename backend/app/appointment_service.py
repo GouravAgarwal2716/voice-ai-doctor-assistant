@@ -270,8 +270,8 @@ def cancel_appointment(
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Find active appointment for this phone number
-        query = """
+        # Base query for active appointments for this phone number
+        base_query = """
             SELECT 
                 a.id, a.appointment_code, a.doctor_id, a.slot_id, 
                 a.date, a.time_slot, a.status,
@@ -280,20 +280,28 @@ def cancel_appointment(
             JOIN doctors d ON a.doctor_id = d.id
             WHERE a.patient_phone = ? AND a.status = 'confirmed'
         """
-        params = [clean_phone]
         
-        if appointment_id_or_date:
+        appointment = None
+        
+        if appointment_id_or_date and appointment_id_or_date.strip():
             clean_arg = appointment_id_or_date.strip()
-            if clean_arg.startswith("APT-"):
-                query += " AND a.appointment_code = ?"
-                params.append(clean_arg)
+            if clean_arg.upper().startswith("APT-"):
+                query = base_query + " AND UPPER(a.appointment_code) = ? ORDER BY a.date ASC, a.time_slot ASC LIMIT 1"
+                cursor.execute(query, (clean_phone, clean_arg.upper()))
+                appointment = cursor.fetchone()
             else:
-                query += " AND (a.date = ? OR a.appointment_code LIKE ?)"
-                params.extend([clean_arg, f"%{clean_arg}%"])
-                
-        query += " ORDER BY a.date ASC, a.time_slot ASC LIMIT 1"
-        cursor.execute(query, params)
-        appointment = cursor.fetchone()
+                # Parse relative dates like 'tomorrow', 'today', or format strings
+                parsed_dt = parse_relative_date(clean_arg)
+                query = base_query + " AND (a.date = ? OR a.date = ? OR a.appointment_code LIKE ?) ORDER BY a.date ASC, a.time_slot ASC LIMIT 1"
+                cursor.execute(query, (clean_phone, clean_arg, parsed_dt, f"%{clean_arg}%"))
+                appointment = cursor.fetchone()
+
+        # Fallback: If no match was found with the filter, or no filter was passed,
+        # retrieve the caller's next upcoming confirmed appointment
+        if not appointment:
+            query = base_query + " ORDER BY a.date ASC, a.time_slot ASC LIMIT 1"
+            cursor.execute(query, (clean_phone,))
+            appointment = cursor.fetchone()
         
         if not appointment:
             return {
