@@ -15,7 +15,9 @@ from pipecat.adapters.llm.schemas.tools_schema import ToolsSchema, FunctionSchem
 from pipecat.services.google.llm import GoogleLLMService
 from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.elevenlabs.stt import ElevenLabsSTTService
+import aiohttp
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.processors.audio.vad_processor import VADProcessor
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketTransport, FastAPIWebsocketParams
 from pipecat.serializers.base_serializer import FrameSerializer
 from pipecat.frames.frames import (
@@ -251,7 +253,8 @@ class TranscriptAndEventBroadcaster(FrameProcessor):
 
 def create_pipecat_pipeline(
     websocket,
-    broadcast_callback: Callable[[Dict[str, Any]], Any]
+    broadcast_callback: Callable[[Dict[str, Any]], Any],
+    aiohttp_session: aiohttp.ClientSession
 ) -> tuple[PipelineTask, PipelineRunner]:
     """
     Constructs the Pipecat voice pipeline:
@@ -272,11 +275,13 @@ def create_pipecat_pipeline(
 
     # 2. Silero VAD (Voice Activity Detection bonus)
     vad_analyzer = SileroVADAnalyzer()
+    vad = VADProcessor(vad_analyzer=vad_analyzer)
 
     # 3. Speech-to-Text (STT) - ElevenLabs
     eleven_api_key = settings.ELEVENLABS_API_KEY or "dummy_key_for_init"
     stt = ElevenLabsSTTService(
         api_key=eleven_api_key,
+        aiohttp_session=aiohttp_session,
         sample_rate=16000
     )
 
@@ -381,6 +386,7 @@ def create_pipecat_pipeline(
     # Build Pipecat Pipeline
     pipeline = Pipeline([
         transport.input(),        # Caller Audio In
+        vad,                      # Silero VAD
         stt,                      # ElevenLabs STT
         broadcaster,              # Intercepts Transcripts & notifies Dashboard
         context_pair.user(),      # Aggregates user speech

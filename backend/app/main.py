@@ -1,5 +1,6 @@
 import asyncio
 import json
+import aiohttp
 from contextlib import asynccontextmanager
 from typing import Optional, Dict, Any
 
@@ -204,11 +205,12 @@ async def voice_call_ws(websocket: WebSocket):
     })
 
     try:
-        # Create the Pipecat Voice Pipeline Task & Runner
-        task, runner = create_pipecat_pipeline(websocket, broadcast_event)
-        
-        # Run the Pipecat voice pipeline
-        await runner.run(task)
+        async with aiohttp.ClientSession() as aiohttp_session:
+            # Create the Pipecat Voice Pipeline Task & Runner
+            task, runner = create_pipecat_pipeline(websocket, broadcast_event, aiohttp_session)
+            
+            # Run the Pipecat voice pipeline
+            await runner.run(task)
 
     except WebSocketDisconnect:
         logger.info("Voice Call WebSocket disconnected by client.")
