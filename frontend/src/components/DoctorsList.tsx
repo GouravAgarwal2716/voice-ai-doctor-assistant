@@ -177,14 +177,14 @@ export const DoctorsList: React.FC<DoctorsListProps> = ({
                     </div>
                   </div>
 
-                  {/* Book with Clara Button */}
+                  {/* Schedule Consultation Button */}
                   <div className="shrink-0 flex items-center justify-end">
                     <button
                       onClick={() => onCallForDoctor?.(doc.name)}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-rose-500/20 to-orange-500/20 hover:from-rose-500 hover:to-orange-500 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold rounded-2xl transition duration-300 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-teal-500 text-slate-200 hover:text-slate-950 border border-slate-700 hover:border-teal-400 text-xs font-bold rounded-2xl transition duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                     >
-                      <PhoneCall className="w-3.5 h-3.5" />
-                      <span>Book with Clara</span>
+                      <PhoneCall className="w-3.5 h-3.5 text-teal-400 group-hover:text-slate-950" />
+                      <span>Schedule Visit</span>
                     </button>
                   </div>
                 </div>
@@ -197,7 +197,7 @@ export const DoctorsList: React.FC<DoctorsListProps> = ({
                       <span>Available Consultation Timings:</span>
                     </div>
                     <span className="text-[11px] text-slate-400">
-                      Speak your preferred time to Clara during the call
+                      Select any slot or state your preferred time during call
                     </span>
                   </div>
 

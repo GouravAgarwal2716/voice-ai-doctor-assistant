@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Header } from './components/Header';
-import { HeroSection } from './components/HeroSection';
+import { InteractiveVoiceBar } from './components/InteractiveVoiceBar';
 import { StatsOverview } from './components/StatsOverview';
 import { DoctorsList } from './components/DoctorsList';
 import { AppointmentsTable } from './components/AppointmentsTable';
@@ -174,8 +174,8 @@ export function App() {
       {/* Main Dashboard Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Clinic Hero Banner */}
-        <HeroSection
+        {/* Interactive Voice AI Scheduling Console */}
+        <InteractiveVoiceBar
           callState={callState}
           onStartCall={handleStartCall}
           onSelectPrompt={(prompt) => {
